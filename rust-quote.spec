@@ -6,7 +6,7 @@
 
 Name:           rust-%{crate}
 Version:        1.0.9
-Release:        1
+Release:        2
 Summary:        Quasi-quoting macro quote!(...)
 
 # Upstream license specification: MIT OR Apache-2.0
