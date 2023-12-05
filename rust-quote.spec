@@ -1,25 +1,33 @@
-# * trybuild and rustversion are not packaged
+# Rust packages always list license files and docs
+# inside the crate as well as the containing directory
+%undefine _duplicate_files_terminate_build
+# Avoid dependencies
 %bcond_with check
 %global debug_package %{nil}
 
 %global crate quote
 
-Name:           rust-%{crate}
-Version:        1.0.9
-Release:        2
+Name:           rust-quote
+Version:        1.0.33
+Release:        1
 Summary:        Quasi-quoting macro quote!(...)
+Group:          Development/Rust
 
-# Upstream license specification: MIT OR Apache-2.0
-License:        MIT or ASL 2.0
+License:        MIT OR Apache-2.0
 URL:            https://crates.io/crates/quote
 Source:         %{crates_source}
 
 ExclusiveArch:  %{rust_arches}
-%if %{__cargo_skip_build}
-BuildArch:      noarch
-%endif
 
-BuildRequires:  rust-packaging
+BuildRequires:  cargo-rpm-macros >= 24
+BuildRequires:  (crate(proc-macro2) >= 1.0.66 with crate(proc-macro2) < 2.0.0~)
+BuildRequires:  (crate(proc-macro2/proc-macro) >= 1.0.66 with crate(proc-macro2/proc-macro) < 2.0.0~)
+BuildRequires:  rust >= 1.56
+%if %{with check}
+BuildRequires:  (crate(rustversion/default) >= 1.0.0 with crate(rustversion/default) < 2.0.0~)
+BuildRequires:  (crate(trybuild/default) >= 1.0.66 with crate(trybuild/default) < 2.0.0~)
+BuildRequires:  (crate(trybuild/diff) >= 1.0.66 with crate(trybuild/diff) < 2.0.0~)
+%endif
 
 %global _description %{expand:
 Quasi-quoting macro quote!(...).}
@@ -28,48 +36,61 @@ Quasi-quoting macro quote!(...).}
 
 %package        devel
 Summary:        %{summary}
+Group:          Development/Rust
 BuildArch:      noarch
+Provides:       crate(quote) = 1.0.33
+Requires:       (crate(proc-macro2) >= 1.0.66 with crate(proc-macro2) < 2.0.0~)
+Requires:       cargo
+Requires:       rust >= 1.56
 
 %description    devel %{_description}
 
-This package contains library source intended for building other packages
-which use "%{crate}" crate.
+This package contains library source intended for building other packages which
+use the "%{crate}" crate.
 
 %files          devel
-%license LICENSE-MIT LICENSE-APACHE
-%doc README.md
-%{cargo_registry}/%{crate}-%{version}/
+%license %{crate_instdir}/LICENSE-APACHE
+%license %{crate_instdir}/LICENSE-MIT
+%doc %{crate_instdir}/README.md
+%{crate_instdir}/
 
 %package     -n %{name}+default-devel
 Summary:        %{summary}
+Group:          Development/Rust
 BuildArch:      noarch
+Provides:       crate(quote/default) = 1.0.33
+Requires:       cargo
+Requires:       crate(quote) = 1.0.33
+Requires:       crate(quote/proc-macro) = 1.0.33
 
 %description -n %{name}+default-devel %{_description}
 
-This package contains library source intended for building other packages
-which use "default" feature of "%{crate}" crate.
+This package contains library source intended for building other packages which
+use the "default" feature of the "%{crate}" crate.
 
 %files       -n %{name}+default-devel
-%ghost %{cargo_registry}/%{crate}-%{version}/Cargo.toml
+%ghost %{crate_instdir}/Cargo.toml
 
 %package     -n %{name}+proc-macro-devel
 Summary:        %{summary}
+Group:          Development/Rust
 BuildArch:      noarch
+Provides:       crate(quote/proc-macro) = 1.0.33
+Requires:       (crate(proc-macro2/proc-macro) >= 1.0.66 with crate(proc-macro2/proc-macro) < 2.0.0~)
+Requires:       cargo
+Requires:       crate(quote) = 1.0.33
 
 %description -n %{name}+proc-macro-devel %{_description}
 
-This package contains library source intended for building other packages
-which use "proc-macro" feature of "%{crate}" crate.
+This package contains library source intended for building other packages which
+use the "proc-macro" feature of the "%{crate}" crate.
 
 %files       -n %{name}+proc-macro-devel
-%ghost %{cargo_registry}/%{crate}-%{version}/Cargo.toml
+%ghost %{crate_instdir}/Cargo.toml
 
 %prep
-%autosetup -n %{crate}-%{version_no_tilde} -p1
+%autosetup -n %{crate}-%{version} -p1
 %cargo_prep
-
-%generate_buildrequires
-%cargo_generate_buildrequires
 
 %build
 %cargo_build
